@@ -71,19 +71,16 @@ class Raycast:
 if __name__=="__main__":
     import matplotlib.pyplot as plt
     blocks=[
-        Wall(4, 0, 4, 2),
-        Wall(4, 2, 8, 2),
-        Wall(8, 2, 8, 4),
-        Wall(8, 4, 8, 20),
-        Wall(8, 20, -20, 20),
-        Wall(-20, 20, -20, -20),
-        Wall(-20, -20, 20, -20),
-        Wall(20, -20, 20, 20),
+        Wall(8, -2, 8, 10),
+        Wall(8, 10, 12, 10),
+        Wall(12, 10, 12, 20),
+        Wall(12, 20, 0, 40),
+        Wall(-6, -4, -12, 20),
     ]
     m=Raycast([RaycastReceiver(b) for b in blocks])
-    m.setCenter((0, -10))
-    for i in range(3600):
-        angle=i*math.pi/1800
+    #m.setCenter((0, -10))
+    for i in range(360):
+        angle=i*math.pi/180
         d=m.getCastDepth(angle, 32)
         plt.plot([m.center[0],m.center[0]+d*math.cos(angle)], [m.center[1], m.center[1]+d*math.sin(angle)], color='gray')
 
