@@ -1,7 +1,16 @@
 
 from wall import *
+from polygon import *
 
 class RaycastReceiver:
+    def getCastDepth(self, angle: float, maxdist=1000):
+        return maxdist
+
+    def getCastDepthBuffer(self, startAngle, endAngle, bufsize, maxDist=1000):
+        return maxDist
+
+
+class RaycastWallReceiver(RaycastReceiver):
 
     def __init__(self, block : Wall, center=None):
         self.bind(block, center)
@@ -51,6 +60,36 @@ class RaycastReceiver:
         pass
 
 
+class RaycastPolygonReceiver(RaycastReceiver):
+    def bind(self, polygon, center):
+        self.polygon=polygon
+        self.center=center
+        for p in polygon.receivers:
+            p.bind(p.wall, center)
+
+    def getCastDepth(self, angle: float, maxdist=1000):
+        ret=maxdist
+        for p in self.polygon.receivers:
+            ret=min(ret, p.getCastDepth(angle, maxdist))
+        return ret
+
+class RaycastMultiPolygonReceiver(RaycastReceiver):
+    def bind(self, polygons, center):
+        self.polygons=polygons
+        self.receivers=[]
+        self.center=center
+
+        for p in polygons:
+            r=RaycastPolygonReceiver()
+            r.bind(p, center)
+            self.receivers.append(r)
+
+    def getCastDepth(self, angle: float, maxdist=1000):
+        ret = maxdist
+        for rcv in self.receivers:
+            ret=min(ret, rcv.getCastDepth(angle, maxdist))
+        return ret
+
 class Raycast:
 
     def __init__(self, receiverList: list):
@@ -70,21 +109,25 @@ class Raycast:
 
 if __name__=="__main__":
     import matplotlib.pyplot as plt
-    blocks=[
-        Wall(8, -2, 8, 10),
-        Wall(8, 10, 12, 10),
-        Wall(12, 10, 12, 20),
-        Wall(12, 20, 0, 40),
-        Wall(-6, -4, -12, 20),
-    ]
-    m=Raycast([RaycastReceiver(b) for b in blocks])
-    #m.setCenter((0, -10))
+
+    P=[Polygon([[0,0], [8, 0], [8, 6], [0,6]]),
+       Polygon([[3,3],[3,4],[4,4],[4,3]]),
+       Polygon([[5, 2], [5, 3], [6, 3], [6, 2]])
+       ]
+
+    plt.scatter([2], [1])
+    m=RaycastMultiPolygonReceiver()
+
+    m.bind(P, [2,1])
     for i in range(360):
         angle=i*math.pi/180
         d=m.getCastDepth(angle, 32)
         plt.plot([m.center[0],m.center[0]+d*math.cos(angle)], [m.center[1], m.center[1]+d*math.sin(angle)], color='gray')
+        #plt.scatter([2], [1], marker='o', linewidths=5, color='red')
 
-    for b in blocks:
-        b.plot()
+    for p in P:
+        p.plot()
+    plt.scatter([2],[1], color='red', linewidths=5, zorder=100)
     plt.show()
+
 
