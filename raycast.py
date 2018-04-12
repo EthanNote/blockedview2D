@@ -1,6 +1,6 @@
-
 from wall import *
 from polygon import *
+import math
 
 class RaycastReceiver:
     def getCastDepth(self, angle: float, maxdist=1000):
@@ -9,6 +9,8 @@ class RaycastReceiver:
     def getCastDepthBuffer(self, startAngle, endAngle, bufsize, maxDist=1000):
         return maxDist
 
+    def getCircleDepthBuffer(self, maxdist=1000):
+        return [self.getCastDepth(i*math.pi/180) for i in range(360) ]
 
 class RaycastWallReceiver(RaycastReceiver):
 
@@ -54,6 +56,8 @@ class RaycastWallReceiver(RaycastReceiver):
             return maxdist
         angle-=self.beginEndian[0]
         hitangle= self.viewRightAngle - angle
+        if hitangle==0:
+            return maxdist
         return self.viewRightAngle_sin * self.beginEndian[1] / math.sin(hitangle)
 
     def getCastDepthBuffer(self, startAngle, endAngle, bufsize, maxDist=1000):
